@@ -1,4 +1,5 @@
-<?php namespace Pixie\QueryBuilder;
+<?php
+namespace Pixie\QueryBuilder;
 
 use PDO;
 use Pixie\Connection;
@@ -6,12 +7,6 @@ use Pixie\Exception;
 
 class QueryBuilderHandler
 {
-
-    /**
-     * @var \Viocon\Container
-     */
-    protected $container;
-
     /**
      * @var Connection
      */
@@ -28,7 +23,7 @@ class QueryBuilderHandler
     protected $pdo;
 
     /**
-     * @var null|PDOStatement
+     * @var null|\PDOStatement
      */
     protected $pdoStatement = null;
 
@@ -50,7 +45,17 @@ class QueryBuilderHandler
     protected $fetchParameters = array(PDO::FETCH_OBJ);
 
     /**
-     * @param null|\Pixie\Connection $connection
+     * @var array
+     */
+    protected $adapterConfig;
+
+    /**
+     * @var string
+     */
+    protected $adapter;
+
+    /**
+     * @param      \Pixie\Connection $connection
      *
      * @param int $fetchMode
      * @throws Exception
@@ -64,7 +69,6 @@ class QueryBuilderHandler
         }
 
         $this->connection = $connection;
-        $this->container = $this->connection->getContainer();
         $this->pdo = $this->connection->getPdoInstance();
         $this->adapter = $this->connection->getAdapter();
         $this->adapterConfig = $this->connection->getAdapterConfig();
@@ -76,10 +80,8 @@ class QueryBuilderHandler
         }
 
         // Query builder adapter instance
-        $this->adapterInstance = $this->container->build(
-            '\\Pixie\\QueryBuilder\\Adapters\\' . ucfirst($this->adapter),
-            array($this->connection)
-        );
+        $adapterClass = '\\Pixie\\QueryBuilder\\Adapters\\' . ucfirst($this->adapter);
+        $this->adapterInstance = new $adapterClass($this->connection);
 
         $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     }
@@ -109,7 +111,7 @@ class QueryBuilderHandler
     }
 
     /**
-     * @param null|\Pixie\Connection $connection
+     * @param      \Pixie\Connection $connection
      * @return QueryBuilderHandler
      * @throws Exception
      */
@@ -167,7 +169,8 @@ class QueryBuilderHandler
         $eventResult = $this->fireEvents('before-select');
         if (!is_null($eventResult)) {
             return $eventResult;
-        };
+        }
+        ;
 
         $executionTime = 0;
         if (is_null($this->pdoStatement)) {
@@ -263,9 +266,9 @@ class QueryBuilderHandler
         }
 
         if (is_array($row[0])) {
-            return (int)$row[0]['field'];
+            return (int) $row[0]['field'];
         } elseif (is_object($row[0])) {
-            return (int)$row[0]->field;
+            return (int) $row[0]->field;
         }
 
         return 0;
@@ -273,12 +276,12 @@ class QueryBuilderHandler
 
     /**
      * @param string $type
-     * @param array $dataToBePassed
+     * @param array|bool $dataToBePassed
      *
      * @return mixed
      * @throws Exception
      */
-    public function getQuery($type = 'select', $dataToBePassed = array())
+    public function getQuery($type = 'select', $dataToBePassed = [])
     {
         $allowedTypes = array('select', 'insert', 'insertignore', 'replace', 'delete', 'update', 'criteriaonly');
         if (!in_array(strtolower($type), $allowedTypes)) {
@@ -287,15 +290,12 @@ class QueryBuilderHandler
 
         $queryArr = $this->adapterInstance->$type($this->statements, $dataToBePassed);
 
-        return $this->container->build(
-            '\\Pixie\\QueryBuilder\\QueryObject',
-            array($queryArr['sql'], $queryArr['bindings'], $this->pdo)
-        );
+        return new QueryObject($queryArr['sql'], $queryArr['bindings'], $this->pdo);
     }
 
     /**
      * @param QueryBuilderHandler $queryBuilder
-     * @param null $alias
+     * @param      $alias
      *
      * @return Raw
      */
@@ -383,7 +383,7 @@ class QueryBuilderHandler
     /**
      * @param $data
      *
-     * @return $this
+     * @return array|string
      */
     public function update($data)
     {
@@ -794,8 +794,8 @@ class QueryBuilderHandler
 
         // Build a new JoinBuilder class, keep it by reference so any changes made
         // in the closure should reflect here
-        $joinBuilder = $this->container->build('\\Pixie\\QueryBuilder\\JoinBuilder', array($this->connection));
-        $joinBuilder = &$joinBuilder;
+        $joinBuilder = new JoinBuilder($this->connection);
+
         // Call the closure with our new joinBuilder object
         $key($joinBuilder);
         $table = $this->addTablePrefix($table, false);
@@ -819,7 +819,7 @@ class QueryBuilderHandler
             $this->pdo->beginTransaction();
 
             // Get the Transaction class
-            $transaction = $this->container->build('\\Pixie\\QueryBuilder\\Transaction', array($this->connection));
+            $transaction = new Transaction($this->connection);
 
             // Call closure
             $callback($transaction);
@@ -842,8 +842,8 @@ class QueryBuilderHandler
     /**
      * @param      $table
      * @param      $key
-     * @param null $operator
-     * @param null $value
+     * @param      $operator
+     * @param      $value
      *
      * @return $this
      */
@@ -855,8 +855,8 @@ class QueryBuilderHandler
     /**
      * @param      $table
      * @param      $key
-     * @param null $operator
-     * @param null $value
+     * @param      $operator
+     * @param      $value
      *
      * @return $this
      */
@@ -868,8 +868,8 @@ class QueryBuilderHandler
     /**
      * @param      $table
      * @param      $key
-     * @param null $operator
-     * @param null $value
+     * @param      $operator
+     * @param      $value
      *
      * @return $this
      */
@@ -888,7 +888,7 @@ class QueryBuilderHandler
      */
     public function raw($value, $bindings = array())
     {
-        return $this->container->build('\\Pixie\\QueryBuilder\\Raw', array($value, $bindings));
+        return new Raw($value, $bindings);
     }
 
     /**

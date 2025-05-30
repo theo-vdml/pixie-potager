@@ -1,7 +1,9 @@
-<?php namespace Pixie\QueryBuilder\Adapters;
+<?php
+namespace Pixie\QueryBuilder\Adapters;
 
 use Pixie\Connection;
 use Pixie\Exception;
+use Pixie\QueryBuilder\NestedCriteria;
 use Pixie\QueryBuilder\Raw;
 
 abstract class BaseAdapter
@@ -11,15 +13,11 @@ abstract class BaseAdapter
      */
     protected $connection;
 
-    /**
-     * @var \Viocon\Container
-     */
-    protected $container;
+    protected $sanitizer;
 
     public function __construct(Connection $connection)
     {
         $this->connection = $connection;
-        $this->container = $this->connection->getContainer();
     }
 
     /**
@@ -142,7 +140,7 @@ abstract class BaseAdapter
             if ($value instanceof Raw) {
                 $values[] = (string) $value;
             } else {
-                $values[] =  '?';
+                $values[] = '?';
                 $bindings[] = $value;
             }
         }
@@ -372,12 +370,9 @@ abstract class BaseAdapter
 
                 // Build a new NestedCriteria class, keep it by reference so any changes made
                 // in the closure should reflect here
-                $nestedCriteria = $this->container->build(
-                    '\\Pixie\\QueryBuilder\\NestedCriteria',
-                    array($this->connection)
-                );
+                $nestedCriteria = new NestedCriteria($this->connection);
 
-                $nestedCriteria = & $nestedCriteria;
+                $nestedCriteria = &$nestedCriteria;
                 // Call the closure with our new nestedCriteria object
                 $key($nestedCriteria);
                 // Get the criteria only query from the nestedCriteria object
@@ -442,13 +437,13 @@ abstract class BaseAdapter
      *
      * @param $value
      *
-     * @return string
+     * @return string|\Closure
      */
     public function wrapSanitizer($value)
     {
         // Its a raw query, just cast as string, object has __toString()
         if ($value instanceof Raw) {
-            return (string)$value;
+            return (string) $value;
         } elseif ($value instanceof \Closure) {
             return $value;
         }
@@ -498,7 +493,7 @@ abstract class BaseAdapter
      *
      * @param $statements
      *
-     * @return array
+     * @return array|string
      */
     protected function buildJoin($statements)
     {

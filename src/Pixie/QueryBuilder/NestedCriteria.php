@@ -1,11 +1,12 @@
-<?php namespace Pixie\QueryBuilder;
+<?php
+namespace Pixie\QueryBuilder;
 
 class NestedCriteria extends QueryBuilderHandler
 {
     /**
      * @param        $key
-     * @param null   $operator
-     * @param null   $value
+     * @param        $operator
+     * @param        $value
      * @param string $joiner
      *
      * @return $this

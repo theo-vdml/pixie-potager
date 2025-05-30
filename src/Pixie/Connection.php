@@ -1,16 +1,10 @@
-<?php namespace Pixie;
+<?php
+namespace Pixie;
 
-use Pixie\QueryBuilder\Raw;
-use Viocon\Container;
+use Pixie\QueryBuilder\QueryBuilderHandler;
 
 class Connection
 {
-
-    /**
-     * @var Container
-     */
-    protected $container;
-
     /**
      * @var string
      */
@@ -40,18 +34,13 @@ class Connection
      * @param               $adapter
      * @param array         $adapterConfig
      * @param null|string   $alias
-     * @param Container     $container
      */
-    public function __construct($adapter, array $adapterConfig, $alias = null, Container $container = null)
+    public function __construct($adapter, array $adapterConfig, $alias = null)
     {
-        $container = $container ? : new Container();
-
-        $this->container = $container;
-
         $this->setAdapter($adapter)->setAdapterConfig($adapterConfig)->connect();
 
         // Create event dependency
-        $this->eventHandler = $this->container->build('\\Pixie\\EventHandler');
+        $this->eventHandler = new EventHandler();
 
         if ($alias) {
             $this->createAlias($alias);
@@ -66,7 +55,7 @@ class Connection
     public function createAlias($alias)
     {
         class_alias('Pixie\\AliasFacade', $alias);
-        $builder = $this->container->build('\\Pixie\\QueryBuilder\\QueryBuilderHandler', array($this));
+        $builder = new QueryBuilderHandler($this);
         AliasFacade::setQueryBuilderInstance($builder);
     }
 
@@ -75,7 +64,7 @@ class Connection
      */
     public function getQueryBuilder()
     {
-        return $this->container->build('\\Pixie\\QueryBuilder\\QueryBuilderHandler', array($this));
+        return new QueryBuilderHandler($this);
     }
 
 
@@ -86,11 +75,12 @@ class Connection
     {
         // Build a database connection if we don't have one connected
 
-        $adapter = '\\Pixie\\ConnectionAdapters\\' . ucfirst(strtolower($this->adapter));
+        $adapterClass = '\\Pixie\\ConnectionAdapters\\' . ucfirst(strtolower($this->adapter));
 
-        $adapterInstance = $this->container->build($adapter, array($this->container));
-
+        /** @var \Pixie\ConnectionAdapters\BaseAdapter $adapterInstance */
+        $adapterInstance = new $adapterClass();
         $pdo = $adapterInstance->connect($this->adapterConfig);
+
         $this->setPdoInstance($pdo);
 
         // Preserve the first database connection with a static property
@@ -151,17 +141,9 @@ class Connection
     /**
      * @return array
      */
-    public function getAdapterConfig()
+    public function getAdapterConfig(): array
     {
         return $this->adapterConfig;
-    }
-
-    /**
-     * @return Container
-     */
-    public function getContainer()
-    {
-        return $this->container;
     }
 
     /**

@@ -1,4 +1,5 @@
-<?php namespace Pixie\QueryBuilder;
+<?php
+namespace Pixie\QueryBuilder;
 
 class QueryObject
 {
@@ -20,7 +21,7 @@ class QueryObject
 
     public function __construct($sql, array $bindings, \PDO $pdo)
     {
-        $this->sql = (string)$sql;
+        $this->sql = (string) $sql;
         $this->bindings = $bindings;
         $this->pdo = $pdo;
     }
@@ -81,7 +82,8 @@ class QueryObject
             }
 
             if (is_array($value)) {
-                $values[$key] = implode(',', $this->pdo->quote($value));
+                $quotedArray = array_map(fn($item): string => (string) $this->pdo->quote($item), $value);
+                $values[$key] = implode(',', $quotedArray);
             }
 
             if (is_null($value)) {
