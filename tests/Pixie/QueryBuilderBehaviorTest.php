@@ -41,8 +41,8 @@ test('select query', function () {
         ->where('value', '=', 'Ifrah')
         ->whereNot('my_table.id', -1)
         ->orWhereNot('my_table.id', -2)
-        ->orWhereIn('my_table.id', array(1, 2))
-        ->groupBy(array('value', 'my_table.id', 'person_details.id'))
+        ->orWhereIn('my_table.id', [1, 2])
+        ->groupBy(['value', 'my_table.id', 'person_details.id'])
         ->orderBy('my_table.id', 'DESC')
         ->orderBy('value')
         ->having('tot', '<', 2)
@@ -61,7 +61,7 @@ test('select query', function () {
 });
 
 test('select aliases', function () {
-    $query = $this->builder->from('my_table')->select('foo')->select(array('bar' => 'baz', 'qux'));
+    $query = $this->builder->from('my_table')->select('foo')->select(['bar' => 'baz', 'qux']);
 
     expect($query->getQuery()->getRawSql())->toBe('SELECT "foo", "bar" AS "baz", "qux" FROM "cb_my_table"');
 });

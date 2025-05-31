@@ -231,7 +231,7 @@ abstract class BaseAdapter
         }
 
         $statement = trim($statement, ',');
-        return array($statement, $bindings);
+        return [$statement, $bindings];
     }
 
     /**
@@ -429,7 +429,7 @@ abstract class BaseAdapter
         // Clear all white spaces, and, or from beginning and white spaces from ending
         $criteria = preg_replace('/^(\s?AND ?|\s?OR ?)|\s$/i', '', $criteria);
 
-        return array($criteria, $bindings);
+        return [$criteria, $bindings];
     }
 
     /**
@@ -485,7 +485,7 @@ abstract class BaseAdapter
             }
         }
 
-        return array($criteria, $bindings);
+        return [$criteria, $bindings];
     }
 
     /**

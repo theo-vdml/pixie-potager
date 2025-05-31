@@ -42,7 +42,7 @@ class QueryBuilderHandler
      *
      * @var array
      */
-    protected $fetchParameters = array(PDO::FETCH_OBJ);
+    protected $fetchParameters = [PDO::FETCH_OBJ];
 
     /**
      * @var array
@@ -60,7 +60,7 @@ class QueryBuilderHandler
      * @param int $fetchMode
      * @throws Exception
      */
-    public function __construct(Connection $connection = null, $fetchMode = PDO::FETCH_OBJ)
+    public function __construct(?Connection $connection = null, $fetchMode = PDO::FETCH_OBJ)
     {
         if (is_null($connection)) {
             if (!$connection = Connection::getStoredConnection()) {
@@ -115,7 +115,7 @@ class QueryBuilderHandler
      * @return QueryBuilderHandler
      * @throws Exception
      */
-    public function newQuery(Connection $connection = null)
+    public function newQuery(?Connection $connection = null)
     {
         if (is_null($connection)) {
             $connection = $this->connection;
@@ -182,7 +182,7 @@ class QueryBuilderHandler
         }
 
         $start = microtime(true);
-        $result = call_user_func_array(array($this->pdoStatement, 'fetchAll'), $this->fetchParameters);
+        $result = call_user_func_array([$this->pdoStatement, 'fetchAll'], $this->fetchParameters);
         $executionTime += microtime(true) - $start;
         $this->pdoStatement = null;
         $this->fireEvents('after-select', $result, $executionTime);
@@ -283,7 +283,7 @@ class QueryBuilderHandler
      */
     public function getQuery($type = 'select', $dataToBePassed = [])
     {
-        $allowedTypes = array('select', 'insert', 'insertignore', 'replace', 'delete', 'update', 'criteriaonly');
+        $allowedTypes = ['select', 'insert', 'insertignore', 'replace', 'delete', 'update', 'criteriaonly'];
         if (!in_array(strtolower($type), $allowedTypes)) {
             throw new Exception($type . ' is not a known type.', 2);
         }
@@ -528,7 +528,7 @@ class QueryBuilderHandler
     public function orderBy($fields, $defaultDirection = 'ASC')
     {
         if (!is_array($fields)) {
-            $fields = array($fields);
+            $fields = [$fields];
         }
 
         foreach ($fields as $key => $value) {
@@ -718,7 +718,7 @@ class QueryBuilderHandler
      */
     public function whereBetween($key, $valueFrom, $valueTo)
     {
-        return $this->whereHandler($key, 'BETWEEN', array($valueFrom, $valueTo), 'AND');
+        return $this->whereHandler($key, 'BETWEEN', [$valueFrom, $valueTo], 'AND');
     }
 
     /**
@@ -730,7 +730,7 @@ class QueryBuilderHandler
      */
     public function orWhereBetween($key, $valueFrom, $valueTo)
     {
-        return $this->whereHandler($key, 'BETWEEN', array($valueFrom, $valueTo), 'OR');
+        return $this->whereHandler($key, 'BETWEEN', [$valueFrom, $valueTo], 'OR');
     }
 
     /**
@@ -954,7 +954,7 @@ class QueryBuilderHandler
         // If supplied value is not an array then make it one
         $single = false;
         if (!is_array($values)) {
-            $values = array($values);
+            $values = [$values];
             // We had single value, so should return a single value
             $single = true;
         }
@@ -993,7 +993,7 @@ class QueryBuilderHandler
     protected function addStatement($key, $value)
     {
         if (!is_array($value)) {
-            $value = array($value);
+            $value = [$value];
         }
 
         if (!array_key_exists($key, $this->statements)) {
