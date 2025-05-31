@@ -1,7 +1,7 @@
 {
-  "name": "usmanhalalit/pixie",
+  "name": "potager/pixie",
   "description": "A lightweight, expressive, framework agnostic query builder for PHP.",
-  "homepage": "https://github.com/usmanhalalit/pixie",
+  "homepage": "https://github.com/theo-vdml/pixie",
   "keywords": [
     "query builder",
     "sql",
