@@ -1,4 +1,4 @@
-**This project is Not Actively Maintained but most of the features are fully working and there are no major security issues, I'm just not giving it much time.**
+I can’t promise my fork is fully stable yet. I’m doing my best to update the code to modern PHP practices, but for now, I focused on getting a “just enough” version of the fork ready for my school project. 
 
 
 # Pixie Query Builder 
